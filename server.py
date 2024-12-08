@@ -2,6 +2,7 @@ import socket
 import threading
 import json
 import time
+import math
 
 # Server Code
 class GameServer:
@@ -16,7 +17,7 @@ class GameServer:
         }
         self.running = True
         self.start_time = time.time()  # Время старта игры
-        self.game_duration = 30  # Продолжительность игры в секундах (например, 30 секунд)
+        self.game_duration = 30  # Продолжительность игры в секундах
 
     def start(self):
         threading.Thread(target=self.receive_messages).start()
@@ -32,14 +33,22 @@ class GameServer:
 
     def handle_message(self, data, address):
         action = data.get('action')
+        payload = data.get('payload')
+
         if action == 'connect':
-            self.handle_connect(data.get('payload'), address)
+            self.handle_connect(payload, address)
+        elif action == 'update_position':
+            self.handle_update_position(payload, address)
+        elif action == 'shoot':
+            self.handle_shoot(payload, address)
 
     def handle_connect(self, payload, address):
         self.state['ships'][payload['client_id']] = {
             'position': [400, 300],  # Центральная позиция на экране
             'hp': 3,
-            'angle': 0
+            'angle': 0,
+            'shots': 10,  # Максимальное количество выстрелов
+            'is_reloading': False
         }
         response = {
             'status': 'success',
@@ -49,6 +58,33 @@ class GameServer:
             }
         }
         self.send_response(response, address)
+
+    def handle_update_position(self, payload, address):
+        client_id = payload['client_id']
+        if client_id in self.state['ships']:
+            self.state['ships'][client_id]['position'] = payload['position']
+            self.state['ships'][client_id]['angle'] = payload['angle']
+
+    def handle_shoot(self, payload, address):
+        ship_id = payload['ship_id']
+        if ship_id in self.state['ships']:
+            ship = self.state['ships'][ship_id]
+            if ship['shots'] > 0:
+                laser = self.create_laser(ship)
+                self.state['lasers'].append(laser)
+                ship['shots'] -= 1
+
+    def create_laser(self, ship):
+        ship_x, ship_y = ship['position']
+        ship_angle = ship['angle']
+        return {
+            "pos": [
+                ship_x + 25 * math.cos(math.radians(ship_angle)),
+                ship_y + 25 * math.sin(math.radians(ship_angle))
+            ],
+            "direction": ship_angle,
+            "vel": [10 * math.cos(math.radians(ship_angle)), 10 * math.sin(math.radians(ship_angle))]
+        }
 
     def send_response(self, response, address):
         self.server_socket.sendto(json.dumps(response).encode(), address)
