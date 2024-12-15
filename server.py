@@ -6,13 +6,33 @@ import math
 from asteroid import spawn_asteroid, update_asteroids
 from laser import shoot_laser, update_lasers
 from utils import FPS, MAX_ASTEROIDS, WIDTH, HEIGHT
+import os
+import json
+
+PLAYERS_FILE = "players.json"  # Путь к файлу с игроками
+
 
 # Server Code
 class GameServer:
+    def load_players(self):
+        """Загружает данные игроков из файла."""
+        if os.path.exists(PLAYERS_FILE):
+            with open(PLAYERS_FILE, 'r') as f:
+                return json.load(f)
+        return {}
+
+    def save_players(self):
+        """Сохраняет данные игроков в файл."""
+        with open(PLAYERS_FILE, 'w') as f:
+            json.dump(self.players, f, indent=4)
+
     def __init__(self, host, port):
         self.start_time = time.time()  # Время старта игры
         self.game_duration = 30  # Продолжительность игры в секундах (например, 30 second)
         self.scores = {'player_0': 0, 'player_1': 0}  # Счет игроков
+
+        self.players = self.load_players()  # Загружаем данные игроков
+
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((host, port))
