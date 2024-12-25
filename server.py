@@ -3,11 +3,11 @@ import threading
 import json
 import time
 import math
-from asteroid import spawn_asteroid, update_asteroids
-from laser import shoot_laser, update_lasers
+from asteroid import AsteroidManager
+from laser import LaserManager
 from utils import FPS, MAX_ASTEROIDS, WIDTH, HEIGHT
+from ship import Ship
 import os
-import json
 
 PLAYERS_FILE = "players.json"  # Путь к файлу с игроками
 
@@ -28,11 +28,9 @@ class GameServer:
 
     def __init__(self, host, port):
         self.start_time = time.time()  # Время старта игры
-        self.game_duration = 30  # Продолжительность игры в секундах (например, 30 second)
+        self.game_duration = 30  # Продолжительность игры в секундах
         self.scores = {'player_0': 0, 'player_1': 0}  # Счет игроков
-
         self.players = self.load_players()  # Загружаем данные игроков
-
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((host, port))
@@ -43,6 +41,14 @@ class GameServer:
             'lasers': []
         }
         self.running = True
+
+        # Создание игровых объектов
+        self.asteroid_manager = AsteroidManager(MAX_ASTEROIDS)
+        self.laser_manager = LaserManager()
+        self.ships = {
+            "player_0": Ship(None, 0),
+            "player_1": Ship(None, 1)
+        }
 
     def start(self):
         threading.Thread(target=self.receive_messages).start()
@@ -187,12 +193,6 @@ class GameServer:
     def game_loop(self):
         while self.running:
             # Update game state
-            if len(self.state['asteroids']) < MAX_ASTEROIDS:
-                asteroid = spawn_asteroid()
-                if asteroid:
-                    self.state['asteroids'].append(asteroid)
-            update_asteroids()  # Обновление астероидов
-            update_lasers()  # Обновление лазеров
             self.update_lasers_state()
             self.check_collisions()
             self.check_collision_ships()
