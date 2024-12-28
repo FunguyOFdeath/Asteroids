@@ -1,63 +1,52 @@
+# asteroid.py
 import random
-import pygame
 import math
-from utils import lasers, asteroids, WIDTH, HEIGHT, GREY
+import pygame
+from utils import WIDTH, HEIGHT, GREY
 
+class AsteroidManager:
+    """Класс-менеджер для хранения и управления всеми астероидами."""
+    def __init__(self, max_asteroids=10):
+        self.max_asteroids = max_asteroids
+        self.asteroids = []
 
-def spawn_asteroid():
-    size = random.randint(20, 45)
-    speed = max(1, 5 - size // 10)
-    random_number = random.choice(range(1, 64))
-    random_number -= 32
-    asteroid = {
-        'pos': [random.randint(0, WIDTH), random.randint(0, HEIGHT)],
-        'vel': [random.choice([-speed, speed]), random.choice([-speed, speed])],
-        'radius': size,
-        'hp': 1,
-        # 'hp': max(1, size // 20)
-        'color': [GREY[0] - random_number, GREY[1] - random_number, GREY[2] - random_number]
-    }
-    asteroids.append(asteroid)
+    def spawn_asteroid(self):
+        """Создаёт и возвращает новый астероид."""
+        size = random.randint(20, 45)
+        speed = max(1, 3 - size // 7)
+        new_ast = {
+            'pos': [random.randint(0, WIDTH), random.randint(0, HEIGHT)],
+            'vel': [random.choice([-speed, speed]), random.choice([-speed, speed])],
+            'radius': size,
+            'hp': 1,
+            'color': GREY
+        }
+        self.asteroids.append(new_ast)
 
+    def update(self):
+        """Обновляет позиции астероидов и удаляет уничтоженные."""
+        for ast in self.asteroids:
+            ast['pos'][0] += ast['vel'][0]
+            ast['pos'][1] += ast['vel'][1]
+            ast['pos'][0] %= WIDTH
+            ast['pos'][1] %= HEIGHT
+        
+        # Можно добавить любую дополнительную логику (разделение при попадании и т.д.)
 
-def update_asteroids():
-    for asteroid in asteroids:
-        asteroid['pos'][0] += asteroid['vel'][0]
-        asteroid['pos'][1] += asteroid['vel'][1]
-        asteroid['pos'][0] %= WIDTH
-        asteroid['pos'][1] %= HEIGHT
-
-        # Проверка столкновений с лазерами
-        for laser in lasers:
-            dist = math.hypot(laser['pos'][0] - asteroid['pos'][0], laser['pos'][1] - asteroid['pos'][1])
-            if dist < asteroid['radius']:
-                asteroid['hp'] -= 1  # Уменьшение ХП астероида
-                if asteroid['hp'] <= 0:
-                    asteroids.remove(asteroid)  # Удаление астероида, если ХП <= 0
-
-                lasers.remove(laser)  # Удаление лазера после попадания
-                break  # Астероид может поразить только один лазер
-
-
-def draw_asteroids(screen):
-    for asteroid in asteroids:
-
-        radius = asteroid['radius']
-        pos = asteroid['pos']
-        color = asteroid['color']
-
-        pygame.draw.circle(screen, color, pos, radius)  # реальное положение
-
-        # Дорисовка при выходе за экран
-        if pos[0] < radius:  # Справа
-            pygame.draw.circle(screen, color, (pos[0] + WIDTH, pos[1]), radius)
-        if WIDTH - pos[0] < radius:  # Слева
-            pygame.draw.circle(screen, color, (pos[0] - WIDTH, pos[1]), radius)
-        if pos[1] < radius:  # Справа
-            pygame.draw.circle(screen, color, (pos[0], pos[1] + HEIGHT), radius)
-        if HEIGHT - pos[1] < radius:  # Слева
-            pygame.draw.circle(screen, color, (pos[0], pos[1] - HEIGHT), radius)
-
-        # Отображение ХП астероида
-        # hp_text = pygame.font.Font(None, 24).render(str(asteroid['hp']), True, WHITE)
-        # screen.blit(hp_text, (asteroid['pos'][0] - 10, asteroid['pos'][1] - 10))
+    def draw(self, screen):
+        """Рисуем астероиды, учитывая выход за края."""
+        for ast in self.asteroids:
+            x, y = ast['pos']
+            radius = ast['radius']
+            color = ast['color']
+            pygame.draw.circle(screen, color, (int(x), int(y)), radius)
+            
+            # Если астероид пересекает границы, дорисуем "копию" с другой стороны
+            if x < radius:
+                pygame.draw.circle(screen, color, (int(x + WIDTH), int(y)), radius)
+            if (WIDTH - x) < radius:
+                pygame.draw.circle(screen, color, (int(x - WIDTH), int(y)), radius)
+            if y < radius:
+                pygame.draw.circle(screen, color, (int(x), int(y + HEIGHT)), radius)
+            if (HEIGHT - y) < radius:
+                pygame.draw.circle(screen, color, (int(x), int(y - HEIGHT)), radius)
