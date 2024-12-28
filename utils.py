@@ -1,3 +1,4 @@
+# utils.py
 import pygame
 
 WIDTH = 800
@@ -15,9 +16,6 @@ FPS = 60
 
 clock = pygame.time.Clock()
 
-# Глобальные переменные
-lasers = []
-asteroids = []
-points = [0, 0]
+# Параметры астероидов и игры
 MAX_ASTEROIDS = 10
-game_time = 30
+GAME_TIME = 60
