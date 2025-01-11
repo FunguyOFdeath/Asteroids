@@ -9,6 +9,7 @@ WINDOW_WIDTH, WINDOW_HEIGHT = screen_info.current_w, screen_info.current_h  # У
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)  # Создаем окно приложения в полноэкранном режиме
 pygame.display.set_caption("Game Menu")  # Устанавливаем заголовок окна
 
+
 path = ""  # Путь к файлам ресурсов, оставляем пустым, если они находятся рядом с кодом
 bg_image = pygame.image.load(path + "MENU.png")  # Загружаем изображение для фона меню
 
@@ -63,6 +64,7 @@ while running:  # Главный цикл программы
                     if key == "PVP":  # Если нажата кнопка "PvP"
                         subprocess.run(["python", "predgame.py"])  # Запускаем внешний процесс с предыгровым меню
                         sys.exit()  # Завершаем приложение
+
 
                     elif key == "PVE":  # Если нажата кнопка "PvE"
                         try:

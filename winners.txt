@@ -1,0 +1,3 @@
+Draw | Score: 0 | (P1=0, P2=0)
+Draw | Score: 0 | (P1=0, P2=0)
+Player1 | Score: 1 | (P1=1, P2=0)

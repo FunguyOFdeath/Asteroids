@@ -1,5 +1,6 @@
 import pygame  # Импортируем модуль Pygame для работы с графикой и событиями
 import sys  # Импортируем модуль sys для управления завершением программы
+import subprocess  # <-- Добавляем этот импорт, чтобы запускать внешний скрипт
 
 pygame.init()  # Инициализируем все модули Pygame
 
@@ -48,43 +49,46 @@ while running:  # Основной цикл программы
 
     ip_surface = font.render(ip_input, True, (255, 255, 255))  # Рендерим текст IP в текстовое поле
     nick_surface = font.render(nick_input, True, (255, 255, 255))  # Рендерим текст имени в текстовое поле
-    ip_surface_rect = ip_surface.get_rect()  # Получаем размеры рендера текста IP
-    nick_surface_rect = nick_surface.get_rect()  # Получаем размеры рендера текста имени
+    ip_surface_rect = ip_surface.get_rect()
+    nick_surface_rect = nick_surface.get_rect()
     ip_surface_rect.center = POLE1_RECT.center  # Центрируем текст IP в текстовом поле
     nick_surface_rect.center = POLE2_RECT.center  # Центрируем текст имени в текстовом поле
-    screen.blit(ip_surface, ip_surface_rect)  # Отображаем текст IP на экране
-    screen.blit(nick_surface, nick_surface_rect)  # Отображаем текст имени на экране
+    screen.blit(ip_surface, ip_surface_rect)  # Отображаем текст IP
+    screen.blit(nick_surface, nick_surface_rect)  # Отображаем текст имени
 
     if ip_input.strip() and nick_input.strip():  # Проверяем, что оба текстовых поля не пустые
         next_active = True  # Активируем кнопку "Далее"
     screen.blit(next_image, NEXT_RECT.topleft if next_active else (NEXT_RECT.x, NEXT_RECT.y))  # Отображаем кнопку "Далее"
 
-    for event in pygame.event.get():  # Обрабатываем события
-        if event.type == pygame.QUIT:  # Если пользователь закрыл окно
-            running = False  # Завершаем цикл
-        elif event.type == pygame.KEYDOWN:  # Если была нажата клавиша
-            if event.key == pygame.K_ESCAPE:  # Проверяем, нажата ли клавиша "ESC"
-                running = False  # Завершаем цикл
-            if active_field == "IP":  # Если активно поле IP
-                if event.key == pygame.K_BACKSPACE:  # Если нажата клавиша Backspace
-                    ip_input = ip_input[:-1]  # Удаляем последний символ
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            if active_field == "IP":
+                if event.key == pygame.K_BACKSPACE:
+                    ip_input = ip_input[:-1]
                 else:
-                    ip_input += event.unicode  # Добавляем символ в строку ввода IP
-            elif active_field == "NICK":  # Если активно поле имени
-                if event.key == pygame.K_BACKSPACE:  # Если нажата клавиша Backspace
-                    nick_input = nick_input[:-1]  # Удаляем последний символ
+                    ip_input += event.unicode
+            elif active_field == "NICK":
+                if event.key == pygame.K_BACKSPACE:
+                    nick_input = nick_input[:-1]
                 else:
-                    nick_input += event.unicode  # Добавляем символ в строку ввода имени
-        elif event.type == pygame.MOUSEBUTTONDOWN:  # Если была нажата кнопка мыши
-            if POLE1_RECT.collidepoint(event.pos):  # Проверяем, нажато ли на поле IP
-                active_field = "IP"  # Устанавливаем поле IP активным
-            elif POLE2_RECT.collidepoint(event.pos):  # Проверяем, нажато ли на поле имени
-                active_field = "NICK"  # Устанавливаем поле имени активным
-            elif NEXT_RECT.collidepoint(event.pos) and next_active:  # Проверяем, нажата ли кнопка "Далее"
-                print(f"Начало игры с IP: {ip_input} и Nick: {nick_input}")  # Выводим информацию о вводе в консоль
-                running = False  # Завершаем цикл
+                    nick_input += event.unicode
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if POLE1_RECT.collidepoint(event.pos):
+                active_field = "IP"
+            elif POLE2_RECT.collidepoint(event.pos):
+                active_field = "NICK"
+            elif NEXT_RECT.collidepoint(event.pos) and next_active:
+                print(f"Начало игры с IP: {ip_input} и Nick: {nick_input}")
+                # ВАЖНО: Запускаем clientTCP.py, НЕ передавая никаких аргументов
+                subprocess.run(["python", "clientTCP.py"])
+                subprocess.run(["python", "menu.py"])
+                running = False
 
-    pygame.display.flip()  # Обновляем содержимое экрана
+    pygame.display.flip()
 
-pygame.quit()  # Завершаем работу Pygame
-sys.exit()  # Полностью завершаем программу
+pygame.quit()
+sys.exit()
